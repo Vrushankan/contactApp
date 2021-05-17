@@ -26,3 +26,12 @@ export function activeUser(dataUser) {
     });
   };
 }
+
+export function deleteUser(dataUser) {
+  return async dispatch => {
+    dispatch({
+      type: 'DELETE_USER',
+      updatedUser: dataUser,
+    });
+  };
+}

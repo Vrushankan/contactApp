@@ -10,11 +10,14 @@ import {
   StatusBar,
   Linking,
   TouchableOpacity,
+  TouchableHighlight,
 } from 'react-native';
+
 import {Card} from 'react-native-paper';
 import Icons from 'react-native-vector-icons/Entypo';
 import Fontisto from 'react-native-vector-icons/Fontisto';
-import _, {map} from 'lodash';
+import {deleteUser} from '../actions/user/fetchUserAction';
+import _ from 'lodash';
 
 const styles = StyleSheet.create({
   container: {
@@ -58,16 +61,47 @@ const styles = StyleSheet.create({
   rightSide: {
     paddingTop: 15,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  outerView: {
+    flex: 1,
+    backgroundColor: '#fff',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    paddingBottom: 10,
+  },
+  buttonOuter: {
+    width: 150,
+    borderRadius: 20,
+  },
+  button: {
+    borderWidth: 1,
+    borderRadius: 20,
+    backgroundColor: '#2c61f3',
+    fontSize: 15,
+    fontWeight: '600',
+    padding: 15,
+    borderColor: 'black',
+    textAlign: 'center',
+    width: 150,
+  },
+  rightContent: {
+    maxWidth: 280,
+    textAlign: 'center',
+  },
 });
 const statusBarStyle = 'default';
 const statusBarTransition = 'fade';
 
 function DetailScreen(props) {
+  const {navigation} = props;
   const [activeUser, setactiveUser] = useState([]);
   useEffect(() => {
     setactiveUser(props.setActiveUser.user);
   }, [props.setActiveUser.user]);
-  console.log(props.setActiveUser);
   const {
     name = '',
     phone = '',
@@ -116,12 +150,19 @@ function DetailScreen(props) {
   const handleWebsiteClick = redirect => {
     const url = _.includes(redirect, 'http') ? redirect : `http:${redirect}`;
     Linking.canOpenURL(url).then(supported => {
-      console.log(supported);
       if (supported) {
         Linking.openURL(url);
       } else {
-        console.log("Don't know how to open URI: " + url);
+        alert('Bad Url');
       }
+    });
+  };
+  const onPressDelete = () => {
+    const dataUpdated = _.filter(props.updatedUserDir.user, each => {
+      return each.id !== props.setActiveUser.user.id;
+    });
+    props.deleteUser(dataUpdated).then(() => {
+      navigation.navigate('Home');
     });
   };
   const getBoxComp = (nameIcon, rightContent, redirect, i) => (
@@ -130,10 +171,10 @@ function DetailScreen(props) {
       <View style={[styles.rightSide]}>
         {redirect ? (
           <TouchableOpacity onPress={() => handleWebsiteClick(rightContent)}>
-            <Text>{rightContent}</Text>
+            <Text style={styles.rightContent}>{rightContent}</Text>
           </TouchableOpacity>
         ) : (
-          <Text>{rightContent}</Text>
+          <Text style={styles.rightContent}>{rightContent}</Text>
         )}
       </View>
     </View>
@@ -148,6 +189,16 @@ function DetailScreen(props) {
         hidden={false}
       />
       <ScrollView>
+        <View styles={styles.buttonContainer}>
+          <View style={styles.outerView}>
+            <TouchableHighlight
+              underlayColor={'red'}
+              onPress={onPressDelete}
+              style={styles.buttonOuter}>
+              <Text style={styles.button}>Delete</Text>
+            </TouchableHighlight>
+          </View>
+        </View>
         <View styles={styles.container}>
           <Image
             source={require('./assets/imgs/defaultContact.webp')}
@@ -168,8 +219,18 @@ function DetailScreen(props) {
 }
 
 function mapState(state) {
-  return state;
+  return {
+    setActiveUser: state.setActiveUser,
+    updatedUserDir: state.deleteUser,
+  };
 }
 
-const DetailScreenContainer = connect(mapState)(DetailScreen);
+const actionCreators = {
+  deleteUser: deleteUser,
+};
+
+const DetailScreenContainer = connect(
+  mapState,
+  actionCreators,
+)(DetailScreen);
 export default DetailScreenContainer;

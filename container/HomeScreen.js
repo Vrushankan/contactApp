@@ -10,7 +10,11 @@ import {
 } from 'react-native';
 import _ from 'lodash';
 import UserRow from './component/UserRow';
-import {fetchUsers, activeUser} from '../actions/user/fetchUserAction';
+import {
+  fetchUsers,
+  activeUser,
+  deleteUser,
+} from '../actions/user/fetchUserAction';
 
 const styles = StyleSheet.create({
   container: {
@@ -35,17 +39,18 @@ function MainScreen(props) {
       }
     });
   }, []);
+  useEffect(() => {
+    setuserJson(props.updatedUserDir.user);
+  }, [props.updatedUserDir]);
 
   useEffect(() => {
-    setuserJson(props.user);
-  }, [props.user]);
+    props.deleteUser(props.fetchUser.user);
+  }, [props.fetchUser.user]);
 
   const handleUserClick = user => {
-    console.log(user,"%%%%%%%%%%%%%%%%%%");
     props.activeUser(user);
     navigation.navigate('detailScreen', {user: user});
   };
-  console.log(props);
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -73,12 +78,16 @@ function MainScreen(props) {
 }
 
 function mapStateToProps(state) {
-  return state.fetchUser;
+  return {
+    fetchUser: state.fetchUser,
+    updatedUserDir: state.deleteUser,
+  };
 }
 
 const actionCreators = {
   fetchUsers: fetchUsers,
   activeUser: activeUser,
+  deleteUser: deleteUser,
 };
 const MainScreenContainer = connect(
   mapStateToProps,
